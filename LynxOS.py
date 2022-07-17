@@ -16,10 +16,10 @@ def main():
         tester_channel = client.get_channel(984950680726937600)
         await tester_channel.send("LynxOS Rewrite Online")
 
-    for folder in os.listdir("modules"):
-        if os.path.exists(os.path.join("modules",folder,"cog.py")):
-            client.load_extension(f"modules.{folder}.cog")
-    
+        for folder in os.listdir("modules"):
+            if os.path.exists(os.path.join("modules",folder,"cog.py")):
+             client.load_extension(f"modules.{folder}.cog")
+        #client.load_extension("modules.Music.cog") 
     with open('token.json','r') as tok:
         TOKEN_FILE = json.load(tok)
 
