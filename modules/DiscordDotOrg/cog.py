@@ -1,3 +1,5 @@
+from datetime import datetime
+from sqlite3 import Date
 from discord.ext import commands
 import discord
 import json
@@ -25,7 +27,7 @@ class UserMessage(Base):
     ID = Column(Integer,primary_key=True)
     Name=Column(String(30))
     Msg=Column(String)
-    MsgDate=Column(String)
+    MsgDate=Column(sqlalchemy.DateTime)
 
     def __repr__(self):
         return f"User(ID={self.ID!r}, Name={self.Name!r}, Msg={self.Msg!r},MsgDate={self.MsgDate!r})"
@@ -35,41 +37,38 @@ class DiscordDotOrg(commands.Cog, name="DiscordDotOrg"):
     @commands.command()
     async def quoteme(self,ctx:commands.Context, count:int,channel: discord.TextChannel=None):
         if count == 0:
-            await ctx.send("PARAMETER CANNOT BE 0")
+            await ctx.send ("Usage <Command> <Count> (Count cannot be 0)")
         else:
-            
             flag = True
-            
+            #Start
+            session = Session(engine)
+            stmt = session.query(UserMessage.ID).distinct(UserMessage.ID).count()
+            IDCOUNT=stmt 
             async for x in ctx.channel.history(limit=count+1):
                 if flag == True:
-                    print("Skipping User Message")
+                    print("Skipping message")
                     flag = False
                 elif flag == False:
-                    obj = x.created_at
                     authorname = str(x.author).split("#")[0]
-                    print(authorname)
-                    obredone = str(obj)
-                    print(obredone)
-                    session = Session(engine)
-                    # RES= session.execute("SELECT COUNT(DISTINCT ID) FROM UserMessages")
-                    # print(RES.first()[0])
-                        
-                    stmt = session.query(UserMessage.ID).distinct(UserMessage.ID).count()
-                    check = stmt
-                    print(check)
-                    await ctx.send(f'Author: {authorname}, Message: {x.content}, Sent on: {obj}')
-            
+                    quoteUser = UserMessage(ID=IDCOUNT,Name=authorname, Msg = x.content, MsgDate=x.created_at)
+                    session.add(quoteUser)
+                    print(quoteUser)
+            session.commit()
 
-        # async for x in ctx.channel.history(limit = count):
-        #     print(x.author)
-        #     print(x.content)
-        #     obj = x.created_at
-        #     print("Created at: ")
-        #     print(obj)
-        #     print("______")
-        #     #await ctx.send(f'Author: {x.author}, Message: {x.content}, Sent on: {obj}')
-        #     await ctx.send(x.content)
-
+    @commands.command()
+    async def quoteme(self,ctx:commands.Context):
+        """Recall user messages, embeds for user display"""
+        # Steps
+        # Retrieve count of items
+        # If count is < 1 - display "Error: No Quotes Stored - use $quoteme <value> to store text"
+        # if count is > 1 - generate a random number between 0-the max count
+        # store each instance of the object in an array
+        # create an embed object and slowly fill it with the quotes from each user in the following format
+        # Date of Conversation
+        # Message Author // Message 
+        # To retrieve messages use
+        # SELECT * FROM <TABLE> WHERE ID = <Generated Number> ORDER BY <COL 4>
+        await ctx.send("Not yet implemented")
 
 def setup(bot: commands.Bot):
     bot.add_cog(DiscordDotOrg(bot))
